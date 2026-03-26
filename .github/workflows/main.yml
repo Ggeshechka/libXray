@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true # Убираем warning
 
     steps:
       - name: Checkout
@@ -37,12 +39,24 @@ jobs:
           go install golang.org/x/mobile/cmd/gobind@latest
           gomobile init
 
+      - name: Skip Geo Download
+        run: |
+          mkdir -p bin
+          touch bin/geoip.dat
+          touch bin/geosite.dat
+          echo "package main; func main() {}" > download_geo/main.go
+
       - name: Build AAR
-        # Скрипт build/main.py подтянет зависимости и запустит gomobile bind
         run: python3 build/main.py android
+
+      - name: Check output files
+        run: ls -R # Посмотрим в логах, где реально лежит файл, если загрузка не сработает
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: libXray-android
-          path: out/*.aar
+          path: |
+            *.aar
+            *.jar
+            out/*.aar
