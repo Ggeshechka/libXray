@@ -9,7 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true # Убираем warning
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout
@@ -50,13 +50,10 @@ jobs:
         run: python3 build/main.py android
 
       - name: Check output files
-        run: ls -R # Посмотрим в логах, где реально лежит файл, если загрузка не сработает
+        run: ls -R
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: libXray-android
-          path: |
-            *.aar
-            *.jar
-            out/*.aar
+          path: libXray.aar
