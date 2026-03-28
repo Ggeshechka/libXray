@@ -110,6 +110,7 @@ type RunXrayRequest struct {
 	DatDir       string `json:"datDir,omitempty"`
 	MphCachePath string `json:"mphCachePath,omitempty"`
 	ConfigPath   string `json:"configPath,omitempty"`
+	TunFd        int    `json:"tunFd,omitempty"` // <-- Добавлено
 }
 
 type RunXrayFromJSONRequest struct {
@@ -119,11 +120,12 @@ type RunXrayFromJSONRequest struct {
 }
 
 // Create Xray Run Request
-func NewXrayRunRequest(datDir, mphCachePath, configPath string) (string, error) {
+func NewXrayRunRequest(datDir, mphCachePath, configPath string, tunFd int) (string, error) {
 	request := RunXrayRequest{
 		DatDir:       datDir,
 		MphCachePath: mphCachePath,
 		ConfigPath:   configPath,
+		TunFd:        tunFd,
 	}
 	requestBytes, err := json.Marshal(&request)
 	if err != nil {
@@ -162,7 +164,7 @@ func RunXray(base64Text string) string {
 	if err != nil {
 		return response.EncodeToBase64("", err)
 	}
-	err = xray.RunXray(request.DatDir, request.MphCachePath, request.ConfigPath)
+	err = xray.RunXray(request.DatDir, request.MphCachePath, request.ConfigPath, request.TunFd)
 	return response.EncodeToBase64("", err)
 }
 

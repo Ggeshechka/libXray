@@ -3,6 +3,7 @@ package xray
 import (
 	"os"
 	"runtime/debug"
+	"strconv"
 
 	"github.com/xtls/libxray/memory"
 	"github.com/xtls/xray-core/common/cmdarg"
@@ -58,7 +59,12 @@ func InitEnv(datDir string, mphCachePath string) {
 // datDir means the dir which geosite.dat and geoip.dat are in.
 // mphCachePath means the path of mph cache file. leave it empty if you don't use mph cache.
 // configPath means the config.json file path.
-func RunXray(datDir string, mphCachePath string, configPath string) (err error) {
+func RunXray(datDir string, mphCachePath string, configPath string, tunFd int) (err error) {
+	if tunFd > 0 {
+		os.Setenv("xray.tun.fd", strconv.Itoa(tunFd))
+		os.Setenv("XRAY_TUN_FD", strconv.Itoa(tunFd))
+	}
+	
 	InitEnv(datDir, mphCachePath)
 	memory.InitForceFree()
 	coreServer, err = StartXray(configPath)
