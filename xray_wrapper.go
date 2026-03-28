@@ -3,17 +3,11 @@ package libXray
 import (
 	"encoding/base64"
 	"encoding/json"
-	"os"
-	"strconv" // ДОБАВЛЕН ИМПОРТ
 
 	"github.com/xtls/libxray/geo"
 	"github.com/xtls/libxray/nodep"
 	"github.com/xtls/libxray/xray"
 )
-
-var tunFile *os.File
-
-// --- Оригинальные структуры (не удалять для компиляции) ---
 
 type RunXrayRequest struct {
 	DatDir       string `json:"datDir,omitempty"`
@@ -33,28 +27,11 @@ type CountGeoDataRequest struct {
 	GeoType string `json:"geoType,omitempty"`
 }
 
-// --- Внутренняя автоматика ---
-
-func manageFd(fd int) {
-	if tunFile != nil {
-		tunFile.Close()
-		tunFile = nil
-	}
-	if fd > 0 {
-		tunFile = os.NewFile(uintptr(fd), "tun")
-		
-		// ВАЖНО: Устанавливаем переменные окружения прямо в кэш Go!
-		fdStr := strconv.Itoa(fd)
-		os.Setenv("vpn_tun_fd", fdStr)
-		os.Setenv("tun_fd", fdStr)
-	}
-}
-
-// --- Основные функции с поддержкой FD ---
+// ВАЖНО: Пустая функция! Запрещаем Go закрывать FD.
+func manageFd(fd int) {}
 
 func RunXray(fd int, base64Text string) string {
 	var response nodep.CallResponse[string]
-	manageFd(fd)
 	req, _ := base64.StdEncoding.DecodeString(base64Text)
 	var request RunXrayRequest
 	json.Unmarshal(req, &request)
@@ -64,7 +41,6 @@ func RunXray(fd int, base64Text string) string {
 
 func RunXrayFromJSON(fd int, base64Text string) string {
 	var response nodep.CallResponse[string]
-	manageFd(fd)
 	req, _ := base64.StdEncoding.DecodeString(base64Text)
 	var request RunXrayFromJSONRequest
 	json.Unmarshal(req, &request)
@@ -74,7 +50,6 @@ func RunXrayFromJSON(fd int, base64Text string) string {
 
 func BuildMphCache(fd int, base64Text string) string {
 	var response nodep.CallResponse[string]
-	manageFd(fd)
 	req, _ := base64.StdEncoding.DecodeString(base64Text)
 	var request RunXrayRequest
 	json.Unmarshal(req, &request)
@@ -84,12 +59,9 @@ func BuildMphCache(fd int, base64Text string) string {
 
 func StopXray() string {
 	var response nodep.CallResponse[string]
-	manageFd(0) // Закрываем FD
 	err := xray.StopXray()
 	return response.EncodeToBase64("", err)
 }
-
-// --- Остальные оригинальные функции ---
 
 func CountGeoData(base64Text string) string {
 	var response nodep.CallResponse[string]
@@ -100,16 +72,11 @@ func CountGeoData(base64Text string) string {
 	return response.EncodeToBase64("", err)
 }
 
-func GetXrayState() bool {
-	return xray.GetXrayState()
-}
-
+func GetXrayState() bool { return xray.GetXrayState() }
 func XrayVersion() string {
 	var response nodep.CallResponse[string]
 	return response.EncodeToBase64(xray.XrayVersion(), nil)
 }
-
-// Оставил заглушки для совместимости
 func TestXray(base64Text string) string { return "" }
 func QueryStats(server string) string   { return "" }
 func ReadGeoFiles(base64Text string) string { return "" }
