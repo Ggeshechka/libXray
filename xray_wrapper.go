@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"os"
+	"strconv" // ДОБАВЛЕН ИМПОРТ
 
 	"github.com/xtls/libxray/geo"
 	"github.com/xtls/libxray/nodep"
@@ -41,6 +42,11 @@ func manageFd(fd int) {
 	}
 	if fd > 0 {
 		tunFile = os.NewFile(uintptr(fd), "tun")
+		
+		// ВАЖНО: Устанавливаем переменные окружения прямо в кэш Go!
+		fdStr := strconv.Itoa(fd)
+		os.Setenv("vpn_tun_fd", fdStr)
+		os.Setenv("tun_fd", fdStr)
 	}
 }
 
